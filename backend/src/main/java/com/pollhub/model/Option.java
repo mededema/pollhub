@@ -2,8 +2,6 @@ package com.pollhub.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 
 @Entity
 @Table(name = "options")
@@ -12,7 +10,6 @@ import lombok.ToString;
 @AllArgsConstructor
 @Builder
 public class Option {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,8 +18,8 @@ public class Option {
     private String label;
 
     @ManyToOne
-    @JoinColumn(name = "poll_id")
+    @JoinColumn(name = "question_id")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private Poll poll;
+    private Question question;
 }

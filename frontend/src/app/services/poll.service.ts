@@ -22,11 +22,24 @@ export class PollService {
     return this.http.post<PollResponse>(`${this.apiUrl}/polls`, poll);
   }
 
-  vote(pollId: number, optionId: number): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/votes/polls/${pollId}/options/${optionId}`, {});
-  }
+vote(questionId: number, optionId: number): Observable<void> {
+  return this.http.post<void>(`${this.apiUrl}/votes/questions/${questionId}/options/${optionId}`, {});
+}
 
   getResults(pollId: number): Observable<ResultsResponse> {
     return this.http.get<ResultsResponse>(`${this.apiUrl}/polls/${pollId}/results`);
   }
+
+
+
+  deletePoll(pollId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/polls/${pollId}`);
+  }
+
+  getMyPolls(): Observable<PollResponse[]> {
+    return this.http.get<PollResponse[]>(`${this.apiUrl}/polls/my`);
+  }
 }
+
+
+

@@ -3,47 +3,68 @@
 
   @if (poll) {
     <div class="poll-header">
-      <h2>{{ poll.question }}</h2>
-      <span class="meta">Créé par {{ poll.createdBy }} • Total des votes : <strong>{{ results?.totalVotes || 0 }}</strong></span>
+      <h2>{{ poll.title }}</h2>
+      @if (poll.description) {
+        <p class="description">{{ poll.description }}</p>
+      }
+      <span class="meta">Par {{ poll.createdBy }} • {{ poll.questions.length }} question(s)</span>
+
+      @if (authService.isLoggedIn() && poll.createdBy === authService.getUsername()) {
+        <button class="btn-delete" (click)="deletePoll()">🗑️ Supprimer ce sondage</button>
+      }
     </div>
 
-    @if (message) {
-      <div [class]="isError ? 'alert alert-error' : 'alert alert-success'">
-        {{ message }}
+    @if (!authService.isLoggedIn()) {
+      <div class="login-prompt">
+        <p>🔒 Connectez-vous pour voter et voir les résultats.</p>
+        <button class="btn btn-primary" (click)="authService.login()">Se connecter</button>
       </div>
-    }
+    } @else {
+      @for (q of poll.questions; track q.id) {
+        <div class="question-card">
+          <h3>❓ {{ q.text }}</h3>
 
-    <div class="poll-grid">
-      <!-- Section Vote -->
-      <div class="vote-section card">
-        <h3>Choisir une option :</h3>
-        @for (opt of poll.options; track opt.id) {
-          <button class="btn-vote" (click)="vote(opt.id)">
-            <span>{{ opt.label }}</span>
-            <span class="arrow">Voter →</span>
-          </button>
-        }
-      </div>
-
-      <!-- Section Résultats en direct -->
-      <div class="results-section card">
-        <h3>📊 Résultats en direct</h3>
-        @if (results) {
-          @for (res of results.results; track res.optionId) {
-            <div class="result-bar-group">
-              <div class="result-info">
-                <span>{{ res.label }}</span>
-                <strong>{{ res.votes }} vote(s) ({{ calcPercent(res.votes) }}%)</strong>
-              </div>
-              <div class="progress-bg">
-                <div class="progress-fill" [style.width.%]="calcPercent(res.votes)"></div>
-              </div>
+          @if (messages.get(q.id)) {
+            <div [class]="errors.get(q.id) ? 'alert alert-error' : 'alert alert-success'">
+              {{ messages.get(q.id) }}
             </div>
           }
-        }
-      </div>
-    </div>
+
+          <div class="question-grid">
+            <div class="vote-section">
+              @for (opt of q.options; track opt.id) {
+                <button class="btn-vote" (click)="vote(q.id, opt.id)">
+                  {{ opt.label }} →
+                </button>
+              }
+            </div>
+
+            <div class="results-section">
+              @if (results && canSeeResults) {
+                @for (qr of results.questions; track qr.questionId) {
+                  @if (qr.questionId === q.id) {
+                    @for (res of qr.options; track res.optionId) {
+                      <div class="result-bar-group">
+                        <div class="result-info">
+                          <span>{{ res.label }}</span>
+                          <strong>{{ res.votes }} ({{ calcPercent(res.votes, qr.totalVotes) }}%)</strong>
+                        </div>
+                        <div class="progress-bg">
+                          <div class="progress-fill" [style.width.%]="calcPercent(res.votes, qr.totalVotes)"></div>
+                        </div>
+                      </div>
+                    }
+                  }
+                }
+              } @else if (!canSeeResults) {
+                <p class="vote-first">Votez d'abord pour débloquer les résultats.</p>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    }
   } @else {
-    <p>Chargement du sondage...</p>
+    <p>Chargement...</p>
   }
 </div>

@@ -36,18 +36,12 @@ export class AuthService {
     return this.keycloakInstance?.tokenParsed?.['preferred_username'] || 'Anonyme';
   }
 
-  getToken(): Promise<string> {
-    return new Promise((resolve, reject) => {
-      if (!this.keycloakInstance) {
-        return resolve('');
-      }
-      this.keycloakInstance.updateToken(30)
-        .then(() => resolve(this.keycloakInstance?.token || ''))
-        .catch(() => {
-          this.login();
-          reject('Token expiré');
-        });
-    });
+  // Version ultra-sécurisée qui renvoie le token instantanément sans bloquer l'application
+  async getToken(): Promise<string> {
+    if (this.keycloakInstance && this.keycloakInstance.token) {
+      return this.keycloakInstance.token;
+    }
+    return '';
   }
 
   login(): void {

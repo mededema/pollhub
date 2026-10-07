@@ -1,7 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PollService } from '../../services/poll.service';
+import { AuthService } from '../../auth/auth.service';
 import { PollResponse } from '../../models/poll.model';
 
 @Component({
@@ -13,6 +14,8 @@ import { PollResponse } from '../../models/poll.model';
 })
 export class PollListComponent implements OnInit {
   private pollService = inject(PollService);
+  private cdr = inject(ChangeDetectorRef);
+  public authService = inject(AuthService);
   polls: PollResponse[] = [];
   loading = true;
 
@@ -21,9 +24,11 @@ export class PollListComponent implements OnInit {
       next: (data) => {
         this.polls = data;
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: () => {
         this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }

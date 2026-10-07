@@ -7,25 +7,45 @@
 
   <form (ngSubmit)="submit()">
     <div class="form-group">
-      <label for="question">Votre Question :</label>
-      <input id="question" type="text" [(ngModel)]="question" name="question" placeholder="Ex: Quel orchestrateur préfères-tu ?" required>
+      <label>Titre du sondage :</label>
+      <input type="text" [(ngModel)]="title" name="title" placeholder="Ex: Elections 2026" required>
     </div>
 
     <div class="form-group">
-      <label>Options de vote :</label>
-      @for (opt of options; track trackByIndex($index)) {
-        <div class="option-row">
-          <input type="text" [(ngModel)]="options[$index]" [name]="'option-' + $index" placeholder="Option {{ $index + 1 }}" required>
-          @if (options.length > 2) {
-            <button type="button" class="btn-remove" (click)="removeOption($index)">✕</button>
+      <label>Description (optionnel) :</label>
+      <input type="text" [(ngModel)]="description" name="description" placeholder="Contexte...">
+    </div>
+
+    <hr>
+    <h3>Questions</h3>
+
+    @for (q of questions; track trackByIndex(qIdx); let qIdx = $index) {
+      <div class="question-block">
+        <div class="question-header">
+          <label>Question {{ qIdx + 1 }} :</label>
+          @if (questions.length > 1) {
+            <button type="button" class="btn-remove" (click)="removeQuestion(qIdx)">Supprimer</button>
           }
         </div>
-      }
+        <input type="text" [(ngModel)]="q.text" [name]="'q-' + qIdx" placeholder="Ex: Meilleur langage ?" required>
 
-      @if (options.length < 6) {
-        <button type="button" class="btn-secondary" (click)="addOption()">+ Ajouter une option</button>
-      }
-    </div>
+        <div class="options-list">
+          @for (opt of q.options; track trackByIndex(oIdx); let oIdx = $index) {
+            <div class="option-row">
+              <input type="text" [(ngModel)]="q.options[oIdx]" [name]="'opt-' + qIdx + '-' + oIdx" placeholder="Option {{ oIdx + 1 }}">
+              @if (q.options.length > 2) {
+                <button type="button" class="btn-remove-sm" (click)="removeOption(qIdx, oIdx)">✕</button>
+              }
+            </div>
+          }
+          @if (q.options.length < 6) {
+            <button type="button" class="btn-add" (click)="addOption(qIdx)">+ Option</button>
+          }
+        </div>
+      </div>
+    }
+
+    <button type="button" class="btn-secondary" (click)="addQuestion()">+ Ajouter une question</button>
 
     <div class="form-actions">
       <a routerLink="/" class="btn-cancel">Annuler</a>

@@ -1,17 +1,17 @@
 package com.pollhub.service;
 
 import com.pollhub.dto.*;
-import com.pollhub.model.Option;
-import com.pollhub.model.Poll;
-import com.pollhub.repository.PollRepository;
-import com.pollhub.repository.VoteRepository;
+import com.pollhub.model.*;
+import com.pollhub.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.ArrayList;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,16 +23,28 @@ public class PollService {
 
     public PollResponse create(PollRequest request, String username) {
         Poll poll = Poll.builder()
-                .question(request.question())
+                .title(request.title())
+                .description(request.description())
                 .expiresAt(request.expiresAt())
                 .createdBy(username)
                 .build();
 
-        List<Option> options = request.options().stream()
-                .map(label -> Option.builder().label(label).poll(poll).build())
-                .toList();
-        poll.setOptions(options);
+        AtomicInteger order = new AtomicInteger(0);
+        List<Question> questions = request.questions().stream()
+                .map(qr -> {
+                    Question q = Question.builder()
+                            .text(qr.text())
+                            .sortOrder(order.getAndIncrement())
+                            .poll(poll)
+                            .build();
+                    List<Option> options = qr.options().stream()
+                            .map(label -> Option.builder().label(label).question(q).build())
+                            .toList();
+                    q.setOptions(options);
+                    return q;
+                }).toList();
 
+        poll.setQuestions(questions);
         return toResponse(pollRepository.save(poll));
     }
 
@@ -44,20 +56,24 @@ public class PollService {
         return toResponse(getPoll(id));
     }
 
-    /** Résultats lus dans Redis (temps réel), avec repli sur Postgres si la clé n'existe pas. */
     public ResultsResponse getResults(Long pollId) {
         Poll poll = getPoll(pollId);
 
-        List<OptionResult> results = poll.getOptions().stream()
-                .map(o -> new OptionResult(o.getId(), o.getLabel(), readCounter(pollId, o.getId())))
-                .toList();
+        List<QuestionResult> qResults = poll.getQuestions().stream()
+                .map(q -> {
+                    List<OptionResult> oResults = q.getOptions().stream()
+                            .map(o -> new OptionResult(o.getId(), o.getLabel(), readCounter(q.getId(), o.getId())))
+                            .toList();
+                    long total = oResults.stream().mapToLong(OptionResult::votes).sum();
+                    return new QuestionResult(q.getId(), q.getText(), total, oResults);
+                }).toList();
 
-        long total = results.stream().mapToLong(OptionResult::votes).sum();
-        return new ResultsResponse(poll.getId(), poll.getQuestion(), total, results);
+        long grandTotal = qResults.stream().mapToLong(QuestionResult::totalVotes).sum();
+        return new ResultsResponse(poll.getId(), poll.getTitle(), grandTotal, qResults);
     }
 
-    private long readCounter(Long pollId, Long optionId) {
-        String key = "poll:" + pollId + ":option:" + optionId;
+    private long readCounter(Long questionId, Long optionId) {
+        String key = "q:" + questionId + ":opt:" + optionId;
         String value = redisTemplate.opsForValue().get(key);
         if (value != null) {
             return Long.parseLong(value);
@@ -73,10 +89,42 @@ public class PollService {
     }
 
     private PollResponse toResponse(Poll p) {
-        List<OptionResponse> opts = p.getOptions().stream()
-                .map(o -> new OptionResponse(o.getId(), o.getLabel()))
-                .toList();
-        return new PollResponse(p.getId(), p.getQuestion(), p.getCreatedAt(),
-                p.getExpiresAt(), p.getCreatedBy(), opts);
+        List<QuestionResponse> qs = p.getQuestions().stream()
+                .map(q -> new QuestionResponse(
+                        q.getId(),
+                        q.getText(),
+                        q.getSortOrder(),
+                        q.getOptions().stream()
+                                .map(o -> new OptionResponse(o.getId(), o.getLabel()))
+                                .toList()
+                )).toList();
+        return new PollResponse(p.getId(), p.getTitle(), p.getDescription(),
+                p.getCreatedAt(), p.getExpiresAt(), p.getCreatedBy(), qs);
+    }
+
+
+        public List<PollResponse> findByCreator(String username) {
+        return pollRepository.findByCreatedBy(username).stream()
+                .map(this::toResponse).toList();
+    }
+
+    @Transactional
+    public void deleteIfOwner(Long id, String username) {
+        Poll poll = getPoll(id);
+        if (!poll.getCreatedBy().equals(username)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Pas le proprietaire");
+        }
+
+        // Clés Redis des compteurs de ce sondage
+        List<String> keys = new ArrayList<>();
+        for (Question q : poll.getQuestions()) {
+            for (Option o : q.getOptions()) {
+                keys.add("q:" + q.getId() + ":opt:" + o.getId());
+            }
+        }
+
+        voteRepository.deleteByQuestionPollId(id); // 1. supprimer les votes
+        pollRepository.delete(poll);               // 2. puis le sondage
+        redisTemplate.delete(keys);                // 3. nettoyer Redis
     }
 }

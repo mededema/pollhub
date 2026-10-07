@@ -1,29 +1,32 @@
 <div class="container">
   <div class="header-action">
-    <h2>🗳️ Sondages Actifs</h2>
-    <a routerLink="/create" class="btn btn-primary">+ Créer un Sondage</a>
+    <h2>🗳️ Sondages</h2>
+    @if (authService.isLoggedIn()) {
+      <a routerLink="/create" class="btn btn-primary">+ Nouveau Sondage</a>
+    }
   </div>
 
   @if (loading) {
-    <p class="loading">Chargement des sondages...</p>
+    <p class="loading">Chargement...</p>
   } @else if (polls.length === 0) {
     <div class="empty-card">
       <p>Aucun sondage pour le moment.</p>
-      <a routerLink="/create" class="btn btn-primary">Créer le premier sondage</a>
     </div>
   } @else {
     <div class="grid">
       @for (poll of polls; track poll.id) {
         <div class="card">
-          <h3>{{ poll.question }}</h3>
-          <p class="meta">Créé par <strong>{{ poll.createdBy }}</strong></p>
-          <div class="options-preview">
-            @for (opt of poll.options; track opt.id) {
-              <span class="badge">{{ opt.label }}</span>
-            }
-          </div>
+          <h3>{{ poll.title }}</h3>
+          @if (poll.description) {
+            <p class="desc">{{ poll.description }}</p>
+          }
+          <p class="meta">{{ poll.questions.length }} question(s) • Par {{ poll.createdBy }}</p>
           <div class="card-footer">
-            <a [routerLink]="['/poll', poll.id]" class="btn btn-outline">Voter / Résultats →</a>
+            @if (authService.isLoggedIn()) {
+              <a [routerLink]="['/poll', poll.id]" class="btn btn-outline">Voter / Resultats →</a>
+            } @else {
+              <button class="btn btn-outline" (click)="authService.login()">Connectez-vous pour voter</button>
+            }
           </div>
         </div>
       }

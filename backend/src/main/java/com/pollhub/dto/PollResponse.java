@@ -5,9 +5,10 @@ import java.util.List;
 
 public record PollResponse(
         Long id,
-        String question,
+        String title,
+        String description,
         LocalDateTime createdAt,
         LocalDateTime expiresAt,
         String createdBy,
-        List<OptionResponse> options
+        List<QuestionResponse> questions
 ) {}

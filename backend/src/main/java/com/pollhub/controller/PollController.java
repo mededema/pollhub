@@ -2,13 +2,14 @@ package com.pollhub.controller;
 
 import com.pollhub.dto.*;
 import com.pollhub.service.PollService;
+import com.pollhub.service.VoteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -17,6 +18,7 @@ import java.util.List;
 public class PollController {
 
     private final PollService pollService;
+    private final VoteService voteService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -36,7 +38,34 @@ public class PollController {
     }
 
     @GetMapping("/{id}/results")
-    public ResultsResponse results(@PathVariable Long id) {
-        return pollService.getResults(id);
+    public ResponseEntity<ResultsResponse> results(@PathVariable Long id,
+                                                    @AuthenticationPrincipal Jwt jwt) {
+        if (jwt == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String username = jwt.getClaimAsString("preferred_username");
+        String creator = pollService.findById(id).createdBy();
+
+        // Le créateur voit toujours les résultats
+        // Les autres doivent avoir voté d'abord
+        if (!creator.equals(username) && !voteService.hasVotedForPoll(id, username)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        return ResponseEntity.ok(pollService.getResults(id));
+    }
+
+    @GetMapping("/my")
+    public List<PollResponse> myPolls(@AuthenticationPrincipal Jwt jwt) {
+        String username = jwt.getClaimAsString("preferred_username");
+        return pollService.findByCreator(username);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id,
+                                        @AuthenticationPrincipal Jwt jwt) {
+        String username = jwt.getClaimAsString("preferred_username");
+        pollService.deleteIfOwner(id, username);
+        return ResponseEntity.ok().build();
     }
 }

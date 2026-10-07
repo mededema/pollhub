@@ -1,6 +1,6 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PollService } from '../../services/poll.service';
 import { AuthService } from '../../auth/auth.service';
 import { PollResponse, ResultsResponse } from '../../models/poll.model';
@@ -15,24 +15,27 @@ import { interval, Subscription } from 'rxjs';
 })
 export class PollDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private pollService = inject(PollService);
+  private cdr = inject(ChangeDetectorRef);
   public authService = inject(AuthService);
 
   poll: PollResponse | null = null;
   results: ResultsResponse | null = null;
-  selectedOptionId: number | null = null;
-  message = '';
-  isError = false;
+  canSeeResults = false;
+  messages: Map<number, string> = new Map();
+  errors: Map<number, boolean> = new Map();
   private refreshSub?: Subscription;
+  pollId = 0;
 
   ngOnInit(): void {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
-    if (id) {
-      this.loadPoll(id);
-      this.loadResults(id);
-
-      // Rafraîchissement automatique des votes toutes les 3 secondes (temps réel)
-      this.refreshSub = interval(3000).subscribe(() => this.loadResults(id));
+    this.pollId = Number(this.route.snapshot.paramMap.get('id'));
+    if (this.pollId) {
+      this.loadPoll();
+      if (this.authService.isLoggedIn()) {
+        this.loadResults();
+        this.refreshSub = interval(3000).subscribe(() => this.loadResults());
+      }
     }
   }
 
@@ -40,43 +43,73 @@ export class PollDetailComponent implements OnInit, OnDestroy {
     this.refreshSub?.unsubscribe();
   }
 
-  loadPoll(id: number): void {
-    this.pollService.getPoll(id).subscribe(p => this.poll = p);
+  loadPoll(): void {
+    this.pollService.getPoll(this.pollId).subscribe({
+      next: (p) => {
+        this.poll = p;
+        this.cdr.markForCheck();
+      },
+      error: (err) => console.error('Erreur loadPoll', err)
+    });
   }
 
-  loadResults(id: number): void {
-    this.pollService.getResults(id).subscribe(r => this.results = r);
-  }
-
-  vote(optionId: number): void {
-    if (!this.authService.isLoggedIn()) {
-      this.authService.login();
-      return;
-    }
-
-    if (!this.poll) return;
-
-    this.pollService.vote(this.poll.id, optionId).subscribe({
-      next: () => {
-        this.message = '✅ Votre vote a bien été enregistré !';
-        this.isError = false;
-        this.loadResults(this.poll!.id);
+  loadResults(): void {
+    this.pollService.getResults(this.pollId).subscribe({
+      next: (r) => {
+        this.results = r;
+        this.canSeeResults = true;
+        this.cdr.markForCheck();
       },
       error: (err) => {
-        this.isError = true;
-        if (err.status === 409) {
-          this.message = '⚠️ Vous avez déjà voté pour ce sondage.';
-        } else if (err.status === 429) {
-          this.message = '⏳ Vous votez trop vite. Ralentissez !';
-        } else {
-          this.message = '❌ Erreur lors du vote.';
+        if (err.status === 403) {
+          this.canSeeResults = false;
         }
+        this.cdr.markForCheck();
       }
     });
   }
 
-  calcPercent(votes: number): number {
-    if (!this.results || this.results.totalVotes === 0) return 0;
-    return Math.round((votes / this.results.totalVotes) * 100);
+  vote(questionId: number, optionId: number): void {
+    this.pollService.vote(questionId, optionId).subscribe({
+      next: () => {
+        this.messages.set(questionId, 'Vote enregistre !');
+        this.errors.set(questionId, false);
+        this.canSeeResults = true;
+        this.loadResults();
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.errors.set(questionId, true);
+        if (err.status === 409) {
+          this.messages.set(questionId, 'Vous avez deja vote pour cette question.');
+          this.canSeeResults = true;
+          this.loadResults();
+        } else if (err.status === 429) {
+          this.messages.set(questionId, 'Vous votez trop vite !');
+        } else {
+          this.messages.set(questionId, 'Erreur lors du vote.');
+        }
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  deletePoll(): void {
+    if (confirm('Supprimer ce sondage ?')) {
+      this.pollService.deletePoll(this.pollId).subscribe({
+        next: () => this.router.navigate(['/']),
+        error: (err) => {
+          console.error('Erreur suppression', err);
+          alert(err.status === 403
+            ? "Vous n'etes pas le proprietaire de ce sondage."
+            : 'Erreur lors de la suppression.');
+        }
+      });
+    }
+  }
+
+  calcPercent(votes: number, total: number): number {
+    if (total === 0) return 0;
+    return Math.round((votes / total) * 100);
   }
 }

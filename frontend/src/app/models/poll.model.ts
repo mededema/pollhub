@@ -3,18 +3,32 @@ export interface OptionResponse {
   label: string;
 }
 
-export interface PollResponse {
+export interface QuestionResponse {
   id: number;
-  question: string;
-  createdAt: string | null;
-  expiresAt: string | null;
-  createdBy: string;
+  text: string;
+  sortOrder: number;
   options: OptionResponse[];
 }
 
-export interface PollRequest {
-  question: string;
+export interface PollResponse {
+  id: number;
+  title: string;
+  description: string;
+  createdAt: string | null;
+  expiresAt: string | null;
+  createdBy: string;
+  questions: QuestionResponse[];
+}
+
+export interface QuestionRequest {
+  text: string;
   options: string[];
+}
+
+export interface PollRequest {
+  title: string;
+  description: string;
+  questions: QuestionRequest[];
   expiresAt: string | null;
 }
 
@@ -24,9 +38,16 @@ export interface OptionResult {
   votes: number;
 }
 
+export interface QuestionResult {
+  questionId: number;
+  text: string;
+  totalVotes: number;
+  options: OptionResult[];
+}
+
 export interface ResultsResponse {
   pollId: number;
-  question: string;
+  title: string;
   totalVotes: number;
-  results: OptionResult[];
+  questions: QuestionResult[];
 }

@@ -29,9 +29,7 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.scss"
-            ]
+            "styles": ["src/styles.scss"]
           },
           "configurations": {
             "production": {
@@ -64,7 +62,8 @@
               "buildTarget": "pollhub-frontend:build:production"
             },
             "development": {
-              "buildTarget": "pollhub-frontend:build:development"
+              "buildTarget": "pollhub-frontend:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"

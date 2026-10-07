@@ -1,4 +1,3 @@
-// backend/src/main/java/com/pollhub/controller/VoteController.java
 package com.pollhub.controller;
 
 import com.pollhub.service.VoteService;
@@ -15,17 +14,14 @@ public class VoteController {
 
     private final VoteService voteService;
 
-    @PostMapping("/polls/{pollId}/options/{optionId}")
+    @PostMapping("/questions/{questionId}/options/{optionId}")
     public ResponseEntity<Void> vote(
-        @PathVariable Long pollId,
+        @PathVariable Long questionId,
         @PathVariable Long optionId,
-        @AuthenticationPrincipal Jwt jwt  // Spring injecte automatiquement le token décodé
+        @AuthenticationPrincipal Jwt jwt
     ) {
-        // On récupère le username depuis le token Keycloak
         String username = jwt.getClaimAsString("preferred_username");
-
-        voteService.vote(pollId, optionId, username);
-
+        voteService.vote(questionId, optionId, username);
         return ResponseEntity.ok().build();
     }
 }

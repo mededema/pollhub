@@ -11,22 +11,26 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class Vote {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "poll_id")
-    private Poll poll;
+    @JoinColumn(name = "question_id")
+    private Question question;
 
     @ManyToOne
     @JoinColumn(name = "option_id")
     private Option option;
 
     @Column(name = "voter_username")
-    private String voterUsername; 
+    private String voterUsername;
 
     @Column(name = "voted_at")
-    private LocalDateTime votedAt = LocalDateTime.now();
+    private LocalDateTime votedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        votedAt = LocalDateTime.now();
+    }
 }
