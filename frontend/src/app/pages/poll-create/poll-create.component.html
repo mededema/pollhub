@@ -1,0 +1,35 @@
+<div class="form-container">
+  <h2>✨ Nouveau Sondage</h2>
+
+  @if (errorMsg) {
+    <div class="alert-error">{{ errorMsg }}</div>
+  }
+
+  <form (ngSubmit)="submit()">
+    <div class="form-group">
+      <label for="question">Votre Question :</label>
+      <input id="question" type="text" [(ngModel)]="question" name="question" placeholder="Ex: Quel orchestrateur préfères-tu ?" required>
+    </div>
+
+    <div class="form-group">
+      <label>Options de vote :</label>
+      @for (opt of options; track trackByIndex($index)) {
+        <div class="option-row">
+          <input type="text" [(ngModel)]="options[$index]" [name]="'option-' + $index" placeholder="Option {{ $index + 1 }}" required>
+          @if (options.length > 2) {
+            <button type="button" class="btn-remove" (click)="removeOption($index)">✕</button>
+          }
+        </div>
+      }
+
+      @if (options.length < 6) {
+        <button type="button" class="btn-secondary" (click)="addOption()">+ Ajouter une option</button>
+      }
+    </div>
+
+    <div class="form-actions">
+      <a routerLink="/" class="btn-cancel">Annuler</a>
+      <button type="submit" class="btn btn-primary">Publier le sondage</button>
+    </div>
+  </form>
+</div>

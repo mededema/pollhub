@@ -1,0 +1,32 @@
+<div class="container">
+  <div class="header-action">
+    <h2>🗳️ Sondages Actifs</h2>
+    <a routerLink="/create" class="btn btn-primary">+ Créer un Sondage</a>
+  </div>
+
+  @if (loading) {
+    <p class="loading">Chargement des sondages...</p>
+  } @else if (polls.length === 0) {
+    <div class="empty-card">
+      <p>Aucun sondage pour le moment.</p>
+      <a routerLink="/create" class="btn btn-primary">Créer le premier sondage</a>
+    </div>
+  } @else {
+    <div class="grid">
+      @for (poll of polls; track poll.id) {
+        <div class="card">
+          <h3>{{ poll.question }}</h3>
+          <p class="meta">Créé par <strong>{{ poll.createdBy }}</strong></p>
+          <div class="options-preview">
+            @for (opt of poll.options; track opt.id) {
+              <span class="badge">{{ opt.label }}</span>
+            }
+          </div>
+          <div class="card-footer">
+            <a [routerLink]="['/poll', poll.id]" class="btn btn-outline">Voter / Résultats →</a>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

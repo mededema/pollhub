@@ -1,0 +1,21 @@
+<header class="navbar">
+  <div class="nav-container">
+    <a routerLink="/" class="logo">🗳️ <strong>PollHub</strong></a>
+    <nav class="nav-links">
+      <a routerLink="/" class="nav-item">Sondages</a>
+      <a routerLink="/create" class="nav-item">Créer un Sondage</a>
+    </nav>
+    <div class="auth-box">
+      @if (authService.isLoggedIn()) {
+        <span class="user-greeting">👤 {{ authService.getUsername() }}</span>
+        <button (click)="authService.logout()" class="btn-auth btn-logout">Déconnexion</button>
+      } @else {
+        <button (click)="authService.login()" class="btn-auth btn-login">Connexion Keycloak</button>
+      }
+    </div>
+  </div>
+</header>
+
+<main>
+  <router-outlet></router-outlet>
+</main>

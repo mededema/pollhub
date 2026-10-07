@@ -1,0 +1,49 @@
+<div class="container">
+  <a routerLink="/" class="back-link">← Retour aux sondages</a>
+
+  @if (poll) {
+    <div class="poll-header">
+      <h2>{{ poll.question }}</h2>
+      <span class="meta">Créé par {{ poll.createdBy }} • Total des votes : <strong>{{ results?.totalVotes || 0 }}</strong></span>
+    </div>
+
+    @if (message) {
+      <div [class]="isError ? 'alert alert-error' : 'alert alert-success'">
+        {{ message }}
+      </div>
+    }
+
+    <div class="poll-grid">
+      <!-- Section Vote -->
+      <div class="vote-section card">
+        <h3>Choisir une option :</h3>
+        @for (opt of poll.options; track opt.id) {
+          <button class="btn-vote" (click)="vote(opt.id)">
+            <span>{{ opt.label }}</span>
+            <span class="arrow">Voter →</span>
+          </button>
+        }
+      </div>
+
+      <!-- Section Résultats en direct -->
+      <div class="results-section card">
+        <h3>📊 Résultats en direct</h3>
+        @if (results) {
+          @for (res of results.results; track res.optionId) {
+            <div class="result-bar-group">
+              <div class="result-info">
+                <span>{{ res.label }}</span>
+                <strong>{{ res.votes }} vote(s) ({{ calcPercent(res.votes) }}%)</strong>
+              </div>
+              <div class="progress-bg">
+                <div class="progress-fill" [style.width.%]="calcPercent(res.votes)"></div>
+              </div>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  } @else {
+    <p>Chargement du sondage...</p>
+  }
+</div>

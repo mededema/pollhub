@@ -1,0 +1,12 @@
+:host { display: block; font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; min-height: 100vh; }
+.navbar { background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 1rem 0; }
+.nav-container { max-width: 1000px; margin: 0 auto; padding: 0 1rem; display: flex; justify-content: space-between; align-items: center; }
+.logo { font-size: 1.3rem; text-decoration: none; color: #0f172a; }
+.nav-links { display: flex; gap: 1.5rem; }
+.nav-item { text-decoration: none; color: #475569; font-weight: 500; }
+.nav-item:hover { color: #2563eb; }
+.auth-box { display: flex; align-items: center; gap: 1rem; }
+.user-greeting { font-size: 0.9rem; color: #334155; font-weight: 600; }
+.btn-auth { padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; font-size: 0.85rem; }
+.btn-login { background: #2563eb; color: white; }
+.btn-logout { background: #fee2e2; color: #b91c1c; }
