@@ -10,7 +10,7 @@ export class AuthService {
 
   async init(): Promise<boolean> {
     this.keycloakInstance = new Keycloak({
-      url: 'http://localhost:8082',
+      url: window.location.port === '4200' ? 'http://localhost:8082' : window.location.origin + '/auth',
       realm: 'pollhub',
       clientId: 'pollhub-frontend'
     });

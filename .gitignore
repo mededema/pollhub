@@ -24,3 +24,10 @@ Thumbs.db
 # Secrets
 *.env
 secrets/
+
+
+# Certificats TLS locaux 
+tls.key
+tls.crt
+*.key
+*.crt
