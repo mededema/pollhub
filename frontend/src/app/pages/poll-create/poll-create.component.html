@@ -1,55 +1,168 @@
-<div class="form-container">
-  <h2>✨ Nouveau Sondage</h2>
+<div class="container page-enter">
+  <div class="form-page">
+    <header class="form-page-header">
+      <h1>Créer un sondage</h1>
+      <p class="page-subtitle">Rédigez vos questions et partagez-les avec la communauté.</p>
+    </header>
 
-  @if (errorMsg) {
-    <div class="alert-error">{{ errorMsg }}</div>
-  }
 
-  <form (ngSubmit)="submit()">
-    <div class="form-group">
-      <label>Titre du sondage :</label>
-      <input type="text" [(ngModel)]="title" name="title" placeholder="Ex: Elections 2026" required>
-    </div>
+     <form (ngSubmit)="submit()" (keydown.enter)="onEnter($event)" novalidate class="poll-form">
 
-    <div class="form-group">
-      <label>Description (optionnel) :</label>
-      <input type="text" [(ngModel)]="description" name="description" placeholder="Contexte...">
-    </div>
+      <section class="form-card card" aria-labelledby="section-infos">
+        <h2 id="section-infos">Informations générales</h2>
 
-    <hr>
-    <h3>Questions</h3>
-
-    @for (q of questions; track trackByIndex(qIdx); let qIdx = $index) {
-      <div class="question-block">
-        <div class="question-header">
-          <label>Question {{ qIdx + 1 }} :</label>
-          @if (questions.length > 1) {
-            <button type="button" class="btn-remove" (click)="removeQuestion(qIdx)">Supprimer</button>
-          }
+        <div class="field">
+          <label for="title">Titre du sondage</label>
+          <input
+            type="text"
+            id="title"
+            [(ngModel)]="title"
+            name="title"
+            [maxlength]="titleMaxLength"
+            placeholder="Ex. Élections 2026"
+            [class.has-error]="submitted && !title.trim()"
+            required>
+          <div class="field-footer">
+            @if (submitted && !title.trim()) {
+              <span class="field-error" role="alert">Le titre est obligatoire.</span>
+            } @else {
+              <span></span>
+            }
+            <span class="char-counter">{{ title.length }}/{{ titleMaxLength }}</span>
+          </div>
         </div>
-        <input type="text" [(ngModel)]="q.text" [name]="'q-' + qIdx" placeholder="Ex: Meilleur langage ?" required>
 
-        <div class="options-list">
-          @for (opt of q.options; track trackByIndex(oIdx); let oIdx = $index) {
-            <div class="option-row">
-              <input type="text" [(ngModel)]="q.options[oIdx]" [name]="'opt-' + qIdx + '-' + oIdx" placeholder="Option {{ oIdx + 1 }}">
-              @if (q.options.length > 2) {
-                <button type="button" class="btn-remove-sm" (click)="removeOption(qIdx, oIdx)">✕</button>
+        <div class="field">
+          <label for="description">Description (optionnel)</label>
+          <input
+            type="text"
+            id="description"
+            [(ngModel)]="description"
+            name="description"
+            [maxlength]="descriptionMaxLength"
+            placeholder="Contexte, consignes...">
+        </div>
+      </section>
+
+      <section class="form-card card" aria-labelledby="section-questions">
+        <div class="section-header">
+          <h2 id="section-questions">Questions</h2>
+          <p class="section-hint">Chaque question doit contenir au moins deux options renseignées.</p>
+        </div>
+
+        @for (q of questions; track trackByIndex($index); let qIdx = $index) {
+          <div class="question-block">
+            <div class="question-header">
+              <label [for]="'question-input-' + qIdx">Question {{ qIdx + 1 }}</label>
+              @if (questions.length > 1) {
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-remove-question"
+                  (click)="removeQuestion(qIdx)">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                    <path d="M10 11v6"/>
+                    <path d="M14 11v6"/>
+                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                  </svg>
+                  <span>Supprimer la question</span>
+                </button>
               }
             </div>
-          }
-          @if (q.options.length < 6) {
-            <button type="button" class="btn-add" (click)="addOption(qIdx)">+ Option</button>
-          }
-        </div>
+
+            <input
+              type="text"
+              [id]="'question-input-' + qIdx"
+              [(ngModel)]="q.text"
+              [name]="'q-' + qIdx"
+              [maxlength]="questionMaxLength"
+              placeholder="Ex. Quel est votre langage préféré ?">
+
+            @if (showQuestionWarning(q)) {
+              <p class="field-warning" role="alert">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M10.3 3.9L2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>
+                  <line x1="12" y1="10" x2="12" y2="13.5"/>
+                  <line x1="12" y1="16.5" x2="12.01" y2="16.5"/>
+                </svg>
+                <span>Ajoutez au moins deux options renseignées pour que cette question soit publiée.</span>
+              </p>
+            }
+
+            <div class="options-list">
+              @for (opt of q.options; track trackByIndex($index); let oIdx = $index) {
+                <div class="option-row">
+                  <input
+                    type="text"
+                    [id]="'option-input-' + qIdx + '-' + oIdx"
+                    [(ngModel)]="q.options[oIdx]"
+                    [name]="'opt-' + qIdx + '-' + oIdx"
+                    [maxlength]="optionMaxLength"
+                    [attr.aria-label]="'Option ' + (oIdx + 1) + ' de la question ' + (qIdx + 1)"
+                    [placeholder]="'Option ' + (oIdx + 1)">
+                  @if (q.options.length > 2) {
+                    <button
+                      type="button"
+                      class="btn-remove-option"
+                      (click)="removeOption(qIdx, oIdx)"
+                      aria-label="Supprimer cette option">
+                      <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                      </svg>
+                    </button>
+                  }
+                </div>
+              }
+
+              @if (q.options.length < 6) {
+                <button type="button" class="btn btn-ghost btn-add-option" (click)="addOption(qIdx)">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                  <span>Ajouter une option</span>
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        <button type="button" class="btn btn-secondary btn-add-question" (click)="addQuestion()">
+          <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          <span>Ajouter une question</span>
+        </button>
+      </section>
+
+      <div class="form-actions">
+
+            @if (errorMsg) {
+      <div class="alert alert-error" role="alert" aria-live="assertive">
+        <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/>
+          <line x1="12" y1="8" x2="12" y2="13"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span>{{ errorMsg }}</span>
       </div>
     }
 
-    <button type="button" class="btn-secondary" (click)="addQuestion()">+ Ajouter une question</button>
-
-    <div class="form-actions">
-      <a routerLink="/" class="btn-cancel">Annuler</a>
-      <button type="submit" class="btn btn-primary">Publier le sondage</button>
-    </div>
-  </form>
+        <a routerLink="/" class="btn btn-ghost">Annuler</a>
+        <button type="submit" class="btn btn-primary" [disabled]="submitting">
+          @if (submitting) {
+            <svg class="icon icon-sm icon-spin" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke-dasharray="40 20"/>
+            </svg>
+            <span>Publication...</span>
+          } @else {
+            <span>Publier le sondage</span>
+          }
+        </button>
+      </div>
+    </form>
+  </div>
 </div>

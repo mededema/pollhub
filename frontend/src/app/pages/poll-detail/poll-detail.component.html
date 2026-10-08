@@ -1,70 +1,169 @@
-<div class="container">
-  <a routerLink="/" class="back-link">← Retour aux sondages</a>
+<div class="container page-enter">
+  <a routerLink="/" class="back-link">
+    <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+    <span>Retour aux sondages</span>
+  </a>
 
   @if (poll) {
-    <div class="poll-header">
-      <h2>{{ poll.title }}</h2>
+    <section class="poll-header">
+      <div class="poll-header-top">
+        <h1>{{ poll.title }}</h1>
+        @if (isOwner()) {
+          <button type="button" class="btn btn-danger" (click)="openDeleteDialog()">
+            <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+              <path d="M10 11v6"/>
+              <path d="M14 11v6"/>
+              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+            </svg>
+            <span>Supprimer</span>
+          </button>
+        }
+      </div>
       @if (poll.description) {
         <p class="description">{{ poll.description }}</p>
       }
-      <span class="meta">Par {{ poll.createdBy }} • {{ poll.questions.length }} question(s)</span>
-
-      @if (authService.isLoggedIn() && poll.createdBy === authService.getUsername()) {
-        <button class="btn-delete" (click)="deletePoll()">🗑️ Supprimer ce sondage</button>
-      }
-    </div>
+      <div class="meta">
+        <span>Cree par {{ poll.createdBy }}</span>
+@if (poll.createdAt) {
+  <span>Créé le {{ poll.createdAt | date:'d MMMM y' }}</span>
+}
+        @if (poll.expiresAt) {
+          <span>Expire le {{ poll.expiresAt | date:'d MMMM y' }}</span>
+        }
+      </div>
+    </section>
 
     @if (!authService.isLoggedIn()) {
       <div class="login-prompt">
-        <p>🔒 Connectez-vous pour voter et voir les résultats.</p>
-        <button class="btn btn-primary" (click)="authService.login()">Se connecter</button>
+        <svg class="icon-lg" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="4" y="11" width="16" height="9" rx="2"/>
+          <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+        </svg>
+        <p>Connectez-vous pour participer a ce sondage et voir les resultats.</p>
+        <button type="button" class="btn btn-primary" (click)="authService.login()">
+          Se connecter
+        </button>
       </div>
     } @else {
-      @for (q of poll.questions; track q.id) {
-        <div class="question-card">
-          <h3>❓ {{ q.text }}</h3>
+      @for (question of poll.questions; track question.id) {
+        <article class="question-card">
+          <h2>{{ question.text }}</h2>
 
-          @if (messages.get(q.id)) {
-            <div [class]="errors.get(q.id) ? 'alert alert-error' : 'alert alert-success'">
-              {{ messages.get(q.id) }}
+          @if (messages.get(question.id)) {
+            <div
+              class="alert"
+              [class.alert-success]="!errors.get(question.id)"
+              [class.alert-error]="errors.get(question.id)"
+              role="status"
+              aria-live="polite">
+              @if (!errors.get(question.id)) {
+                <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9"/>
+                  <polyline points="8 12 11 15 16 9"/>
+                </svg>
+              } @else {
+                <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9"/>
+                  <line x1="12" y1="8" x2="12" y2="13"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+              }
+              <span>{{ messages.get(question.id) }}</span>
             </div>
           }
 
           <div class="question-grid">
-            <div class="vote-section">
-              @for (opt of q.options; track opt.id) {
-                <button class="btn-vote" (click)="vote(q.id, opt.id)">
-                  {{ opt.label }} →
-                </button>
-              }
+            <div class="vote-column">
+              <p class="column-label">Choisissez une option</p>
+              <div class="vote-options">
+                @for (option of question.options; track option.id) {
+                  <button
+                    type="button"
+                    class="btn-vote"
+                    [disabled]="votingQuestionIds.has(question.id)"
+                    (click)="vote(question.id, option.id)">
+                    <span>{{ option.label  }}</span>
+                    <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">
+                      <line x1="5" y1="12" x2="19" y2="12"/>
+                      <polyline points="12 5 19 12 12 19"/>
+                    </svg>
+                  </button>
+                }
+              </div>
             </div>
 
-            <div class="results-section">
-              @if (results && canSeeResults) {
-                @for (qr of results.questions; track qr.questionId) {
-                  @if (qr.questionId === q.id) {
-                    @for (res of qr.options; track res.optionId) {
+            <div class="results-column">
+              <p class="column-label">Resultats</p>
+              @if (canSeeResults) {
+                @if (getQuestionResult(question.id); as questionResult) {
+                  @if (questionResult.totalVotes > 0) {
+                    @for (optionResult of questionResult.options; track optionResult.optionId) {
                       <div class="result-bar-group">
                         <div class="result-info">
-                          <span>{{ res.label }}</span>
-                          <strong>{{ res.votes }} ({{ calcPercent(res.votes, qr.totalVotes) }}%)</strong>
+                          <span>{{ optionResult.label  }}</span>
+                          <span>{{ calcPercent(optionResult.votes, questionResult.totalVotes) }}%</span>
                         </div>
                         <div class="progress-bg">
-                          <div class="progress-fill" [style.width.%]="calcPercent(res.votes, qr.totalVotes)"></div>
+                          <div
+                            class="progress-fill"
+                            [style.width.%]="calcPercent(optionResult.votes, questionResult.totalVotes)">
+                          </div>
                         </div>
                       </div>
                     }
+                  } @else {
+                    <p class="vote-first">Aucun vote pour l'instant.</p>
                   }
+                } @else {
+                  <p class="vote-first">Aucun vote pour l'instant.</p>
                 }
-              } @else if (!canSeeResults) {
-                <p class="vote-first">Votez d'abord pour débloquer les résultats.</p>
+              } @else {
+                <div class="results-locked">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="5" y="11" width="14" height="8" rx="2"/>
+                    <path d="M8 11V8a4 4 0 0 1 8 0v3"/>
+                  </svg>
+                  <span>Votez d'abord pour debloquer les resultats.</span>
+                </div>
               }
             </div>
           </div>
-        </div>
+        </article>
       }
-    }
+    }T
+
+    } @else if (loadError) {
+    <div class="alert alert-error" role="alert">
+      <span>Ce sondage est introuvable ou n'est plus disponible.</span>
+    </div>
   } @else {
-    <p>Chargement...</p>
+    <p class="vote-first">Chargement...</p>
   }
+
+  <dialog #deleteDialog class="confirm-dialog">
+    <h2>Supprimer ce sondage</h2>
+    <p>Cette action est definitive. Toutes les questions et tous les votes associes seront perdus.</p>
+    @if (deleteErrorMsg) {
+      <div class="alert alert-error" role="alert" aria-live="assertive">
+        <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/>
+          <line x1="12" y1="8" x2="12" y2="13"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span>{{ deleteErrorMsg }}</span>
+      </div>
+    }
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-ghost" (click)="closeDeleteDialog()" [disabled]="deleting">
+        Annuler
+      </button>
+      <button type="button" class="btn btn-danger" (click)="deletePoll()" [disabled]="deleting">
+        {{ deleting ? 'Suppression...' : 'Supprimer definitivement' }}
+      </button>
+    </div>
+  </dialog>
 </div>

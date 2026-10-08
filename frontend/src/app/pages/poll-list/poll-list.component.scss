@@ -1,12 +1,170 @@
-.container { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
-.header-action { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
-.card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between; }
-.card h3 { margin-top: 0; color: #1e293b; }
-.meta { font-size: 0.85rem; color: #64748b; margin-bottom: 1rem; }
-.options-preview { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
-.badge { background: #f1f5f9; color: #334155; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; }
-.btn { padding: 0.6rem 1.2rem; border-radius: 6px; font-weight: 600; text-decoration: none; cursor: pointer; border: none; }
-.btn-primary { background: #3b82f6; color: white; }
-.btn-outline { background: transparent; border: 1px solid #3b82f6; color: #3b82f6; width: 100%; text-align: center; box-sizing: border-box; display: inline-block; }
-.empty-card { text-align: center; padding: 3rem; background: white; border-radius: 8px; border: 1px dashed #cbd5e1; }
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin: var(--space-6) 0 var(--space-5);
+}
+
+.page-subtitle {
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+}
+
+.alert {
+  margin-bottom: var(--space-5);
+}
+
+/* ============================================================
+   Grille de cartes
+   ============================================================ */
+
+.poll-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-5);
+  padding-bottom: var(--space-7);
+}
+
+.poll-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  color: inherit;
+  transition: transform var(--duration-base) var(--easing),
+              box-shadow var(--duration-base) var(--easing),
+              border-color var(--duration-base) var(--easing);
+  animation: fade-in-up var(--duration-slow) var(--easing) backwards;
+}
+
+.poll-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-accent-soft-border);
+}
+
+.poll-card:hover .poll-cta {
+  background: var(--color-accent-soft-border);
+}
+
+.poll-card-head h2 {
+  font-size: 1.1rem;
+  line-height: 1.35;
+}
+
+.poll-description {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+
+.poll-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 0.82rem;
+  color: var(--color-text-subtle);
+  font-weight: 600;
+}
+
+.poll-card-footer {
+  margin-top: auto;
+}
+
+.poll-cta {
+  width: 100%;
+  pointer-events: none;
+}
+
+/* ============================================================
+   Etat vide
+   ============================================================ */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-3);
+  padding: var(--space-8) var(--space-5);
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-7);
+}
+
+.empty-state svg {
+  color: var(--color-text-subtle);
+}
+
+.empty-state h2 {
+  color: var(--color-text);
+}
+
+.empty-state .btn {
+  margin-top: var(--space-2);
+}
+
+/* ============================================================
+   Squelettes de chargement
+   ============================================================ */
+
+.poll-card-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.skeleton-title {
+  height: 1.3rem;
+  width: 70%;
+}
+
+.skeleton-line {
+  height: 0.85rem;
+  width: 100%;
+}
+
+.skeleton-line.short {
+  width: 55%;
+}
+
+.skeleton-footer {
+  height: 2.2rem;
+  width: 100%;
+  margin-top: var(--space-2);
+  border-radius: var(--radius-md);
+}
+
+@media (max-width: 480px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-header .btn {
+    width: 100%;
+  }
+}

@@ -1,18 +1,241 @@
-.form-container { max-width: 700px; margin: 2rem auto; padding: 2rem; background: white; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-.form-group { margin-bottom: 1.5rem; display: flex; flex-direction: column; }
-label { font-weight: 600; margin-bottom: 0.5rem; color: #334155; }
-input[type="text"] { padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 1rem; width: 100%; box-sizing: border-box; }
-.question-block { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem; }
-.question-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-.options-list { margin-top: 0.75rem; padding-left: 1rem; }
-.option-row { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; align-items: center; }
-.btn-remove { background: #fee2e2; color: #ef4444; border: none; border-radius: 6px; padding: 0.4rem 0.8rem; cursor: pointer; font-size: 0.85rem; }
-.btn-remove-sm { background: #fee2e2; color: #ef4444; border: none; border-radius: 6px; padding: 0.5rem; cursor: pointer; }
-.btn-add { background: #f1f5f9; border: 1px dashed #94a3b8; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; margin-top: 0.25rem; }
-.btn-secondary { background: #eff6ff; border: 1px dashed #3b82f6; color: #2563eb; padding: 0.6rem 1rem; border-radius: 6px; cursor: pointer; margin-top: 0.5rem; font-weight: 600; }
-.form-actions { display: flex; justify-content: flex-end; gap: 1rem; align-items: center; margin-top: 2rem; }
-.btn { padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; }
-.btn-primary { background: #3b82f6; color: white; }
-.btn-cancel { color: #64748b; text-decoration: none; }
-.alert-error { background: #fee2e2; color: #b91c1c; padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; }
-hr { border: none; border-top: 1px solid #e2e8f0; margin: 1.5rem 0; }
+.form-page {
+  max-width: 740px;
+  margin: 0 auto;
+  padding: var(--space-6) 0 var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.form-page-header h1 {
+  margin-bottom: var(--space-1);
+}
+
+.page-subtitle {
+  color: var(--color-text-muted);
+}
+
+.poll-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* ============================================================
+   Sections du formulaire
+   ============================================================ */
+
+.form-card {
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.form-card h2 {
+  margin-bottom: 0;
+}
+
+.section-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.section-hint {
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+}
+
+/* ============================================================
+   Champs
+   ============================================================ */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+input[type="text"] {
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  width: 100%;
+  background: var(--color-bg-elevated);
+  color: var(--color-text);
+  transition: border-color var(--duration-fast) var(--easing),
+              box-shadow var(--duration-fast) var(--easing);
+}
+
+input[type="text"]::placeholder {
+  color: var(--color-text-subtle);
+}
+
+input[type="text"]:focus-visible {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+input[type="text"].has-error {
+  border-color: var(--color-error-text);
+}
+
+.field-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 1.1rem;
+}
+
+.field-error {
+  color: var(--color-error-text);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.char-counter {
+  color: var(--color-text-subtle);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.field-warning {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-warning-text);
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.82rem;
+  margin: 0;
+}
+
+/* ============================================================
+   Blocs de question
+   ============================================================ */
+
+.question-block {
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  animation: fade-in-up var(--duration-slow) var(--easing) both;
+}
+
+.question-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.btn-remove-question {
+  color: var(--color-text-muted);
+  padding: 0.4rem 0.75rem;
+  font-size: 0.82rem;
+}
+
+.btn-remove-question:hover:not(:disabled) {
+  color: var(--color-error-text);
+  border-color: var(--color-error-border);
+  background: var(--color-error-bg);
+}
+
+/* ============================================================
+   Options
+   ============================================================ */
+
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.option-row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  animation: fade-in-up var(--duration-base) var(--easing) both;
+}
+
+.btn-remove-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--easing),
+              color var(--duration-fast) var(--easing),
+              border-color var(--duration-fast) var(--easing);
+}
+
+.btn-remove-option:hover {
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+  border-color: var(--color-error-border);
+}
+
+.btn-add-option {
+  align-self: flex-start;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.85rem;
+}
+
+.btn-add-question {
+  align-self: flex-start;
+  border-style: dashed;
+}
+
+/* ============================================================
+   Actions de bas de formulaire
+   ============================================================ */
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+/* ============================================================
+   Indicateur de publication en cours
+   ============================================================ */
+
+.icon-spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 600px) {
+  .form-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+  }
+}

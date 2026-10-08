@@ -1,34 +1,100 @@
-<div class="container">
-  <div class="header-action">
-    <h2>🗳️ Sondages</h2>
+<div class="container page-enter">
+  <section class="page-header">
+    <div>
+      <h1>Sondages</h1>
+      <p class="page-subtitle">Decouvrez les sondages de la communaute et donnez votre avis.</p>
+    </div>
     @if (authService.isLoggedIn()) {
-      <a routerLink="/create" class="btn btn-primary">+ Nouveau Sondage</a>
+      <a routerLink="/create" class="btn btn-primary">
+        <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        <span>Creer un sondage</span>
+      </a>
     }
-  </div>
+  </section>
+
+  @if (errorMsg) {
+    <div class="alert alert-error" role="alert" aria-live="polite">
+      <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="9"/>
+        <line x1="12" y1="8" x2="12" y2="13"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span>{{ errorMsg }}</span>
+    </div>
+  }
 
   @if (loading) {
-    <p class="loading">Chargement...</p>
-  } @else if (polls.length === 0) {
-    <div class="empty-card">
-      <p>Aucun sondage pour le moment.</p>
+    <div class="poll-grid" aria-hidden="true">
+      @for (item of skeletonItems; track item) {
+        <div class="poll-card poll-card-skeleton">
+          <div class="skeleton skeleton-title"></div>
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton skeleton-line short"></div>
+          <div class="skeleton skeleton-footer"></div>
+        </div>
+      }
+    </div>
+  } @else if (polls.length === 0 && !errorMsg) {
+    <div class="empty-state">
+      <svg class="icon icon-lg" viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="3" y="4" width="18" height="16" rx="2"/>
+        <line x1="7" y1="9" x2="17" y2="9"/>
+        <line x1="7" y1="13" x2="14" y2="13"/>
+      </svg>
+      <h2>Aucun sondage pour le moment</h2>
+      <p>Soyez le premier a creer un sondage et recueillir des avis.</p>
+      @if (authService.isLoggedIn()) {
+        <a routerLink="/create" class="btn btn-primary">Creer le premier sondage</a>
+      } @else {
+        <button type="button" class="btn btn-primary" (click)="authService.login()">
+          Se connecter pour creer un sondage
+        </button>
+      }
     </div>
   } @else {
-    <div class="grid">
-      @for (poll of polls; track poll.id) {
-        <div class="card">
-          <h3>{{ poll.title }}</h3>
+    <div class="poll-grid">
+      @for (poll of polls; track trackById($index, poll); let i = $index) {
+        <a
+          class="poll-card"
+          [routerLink]="['/poll', poll.id]"
+          [style.animation-delay.ms]="i * 40">
+          <div class="poll-card-head">
+            <h2>{{ poll.title }}</h2>
+          </div>
           @if (poll.description) {
-            <p class="desc">{{ poll.description }}</p>
+            <p class="poll-description">{{ poll.description }}</p>
           }
-          <p class="meta">{{ poll.questions.length }} question(s) • Par {{ poll.createdBy }}</p>
-          <div class="card-footer">
-            @if (authService.isLoggedIn()) {
-              <a [routerLink]="['/poll', poll.id]" class="btn btn-outline">Voter / Resultats →</a>
-            } @else {
-              <button class="btn btn-outline" (click)="authService.login()">Connectez-vous pour voter</button>
+          <div class="poll-meta">
+            <span class="meta-item">
+              <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M9 11.5l2 2 4-4.5"/>
+                <circle cx="12" cy="12" r="9"/>
+              </svg>
+              {{ poll.questions?.length || 0 }} question{{ (poll.questions?.length || 0) > 1 ? 's' : '' }}
+            </span>
+            @if (poll.createdBy) {
+              <span class="meta-item">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="8" r="3.5"/>
+                  <path d="M5 20c1.2-3.3 4-5 7-5s5.8 1.7 7 5"/>
+                </svg>
+                {{ poll.createdBy }}
+              </span>
             }
           </div>
-        </div>
+          <div class="poll-card-footer">
+            <span class="btn btn-secondary poll-cta">
+              <span>Voir le sondage</span>
+              <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </span>
+          </div>
+        </a>
       }
     </div>
   }

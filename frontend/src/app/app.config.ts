@@ -5,6 +5,13 @@ import { routes } from './app.routes';
 import { authInterceptor } from './auth/auth.interceptor';
 import { AuthService } from './auth/auth.service';
 
+
+import { registerLocaleData } from '@angular/common';
+import localeFr from '@angular/common/locales/fr';
+import { LOCALE_ID } from '@angular/core';
+
+registerLocaleData(localeFr);
+
 export function initKeycloak(auth: AuthService) {
   return () => auth.init();
 }
@@ -19,6 +26,8 @@ export const appConfig: ApplicationConfig = {
       useFactory: initKeycloak,
       multi: true,
       deps: [AuthService]
-    }
+    },
+
+    { provide: LOCALE_ID, useValue: 'fr' },
   ]
 };
