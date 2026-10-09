@@ -4,8 +4,17 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 
+// La contrainte unique est la vraie protection contre le double vote : le controle
+// applicatif (existsBy...) n'est qu'un raccourci pour un message d'erreur agreable,
+// il ne suffit pas seul en cas de requetes concurrentes.
 @Entity
-@Table(name = "votes")
+@Table(
+    name = "votes",
+    uniqueConstraints = @UniqueConstraint(
+        name = "uk_votes_question_voter",
+        columnNames = {"question_id", "voter_username"}
+    )
+)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

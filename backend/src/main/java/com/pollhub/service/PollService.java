@@ -48,14 +48,19 @@ public class PollService {
         return toResponse(pollRepository.save(poll));
     }
 
+    // open-in-view est desactive : sans transaction, le parcours de poll.getQuestions()
+    // dans toResponse() echouerait des que la collection est chargee en LAZY
+    @Transactional(readOnly = true)
     public List<PollResponse> findAll() {
         return pollRepository.findAll().stream().map(this::toResponse).toList();
     }
 
+    @Transactional(readOnly = true)
     public PollResponse findById(Long id) {
         return toResponse(getPoll(id));
     }
 
+    @Transactional(readOnly = true)
     public ResultsResponse getResults(Long pollId) {
         Poll poll = getPoll(pollId);
 
@@ -102,8 +107,8 @@ public class PollService {
                 p.getCreatedAt(), p.getExpiresAt(), p.getCreatedBy(), qs);
     }
 
-
-        public List<PollResponse> findByCreator(String username) {
+    @Transactional(readOnly = true)
+    public List<PollResponse> findByCreator(String username) {
         return pollRepository.findByCreatedBy(username).stream()
                 .map(this::toResponse).toList();
     }
@@ -112,7 +117,7 @@ public class PollService {
     public void deleteIfOwner(Long id, String username) {
         Poll poll = getPoll(id);
         if (!poll.getCreatedBy().equals(username)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Pas le proprietaire");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Vous n'êtes pas le propriétaire de ce sondage.");
         }
 
         // Clés Redis des compteurs de ce sondage

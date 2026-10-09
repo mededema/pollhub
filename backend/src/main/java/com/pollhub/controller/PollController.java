@@ -11,6 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/polls")
@@ -49,7 +50,7 @@ public class PollController {
         // Le créateur voit toujours les résultats
         // Les autres doivent avoir voté d'abord
         if (!creator.equals(username) && !voteService.hasVotedForPoll(id, username)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Votez d'abord pour voir les résultats.");
         }
 
         return ResponseEntity.ok(pollService.getResults(id));
