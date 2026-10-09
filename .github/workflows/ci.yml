@@ -21,6 +21,11 @@ jobs:
           java-version: "21"
           distribution: "temurin"
           cache: "maven"
+          
+      - name: Compatibilité Docker pour Testcontainers
+        run: echo "api.version=1.44" > ~/.docker-java.properties
+
+
       - name: Build et tests d'intégration
         run: mvn -B clean verify
         working-directory: backend
