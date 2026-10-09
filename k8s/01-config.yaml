@@ -9,6 +9,7 @@ data:
   REDIS_HOST: "redis"
   KEYCLOAK_ISSUER_URI: "https://pollhub.local/auth/realms/pollhub"
   SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "http://keycloak:8080/auth/realms/pollhub/protocol/openid-connect/certs"
+  POLLHUB_CORS_ALLOWED_ORIGINS: "https://pollhub.local"
 ---
 
 apiVersion: v1
